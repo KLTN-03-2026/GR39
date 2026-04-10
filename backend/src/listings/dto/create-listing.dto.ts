@@ -52,4 +52,14 @@ export class CreateListingDto {
   @IsOptional()
   @IsString()
   color?: string;
+
+  @ApiPropertyOptional({ example: 'Việt Nam' })
+  @IsOptional()
+  @IsString()
+  origin?: string;
+
+  @ApiPropertyOptional({ example: 'Còn bảo hành' })
+  @IsOptional()
+  @IsString()
+  warranty?: string;
 }

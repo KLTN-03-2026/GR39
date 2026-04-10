@@ -21,10 +21,11 @@ export const useAuthStore = create<AuthState>()(
       refreshToken: null,
 
       setAuth: (user, accessToken, refreshToken) => {
-        // Sync với localStorage cho axios interceptor
         if (typeof window !== 'undefined') {
           localStorage.setItem('accessToken', accessToken);
           localStorage.setItem('refreshToken', refreshToken);
+          // Set cookie để middleware (server-side) đọc được
+          document.cookie = `accessToken=${accessToken}; path=/; max-age=${15 * 60}; SameSite=Lax`;
         }
         set({ user, accessToken, refreshToken });
       },
@@ -35,6 +36,8 @@ export const useAuthStore = create<AuthState>()(
         if (typeof window !== 'undefined') {
           localStorage.removeItem('accessToken');
           localStorage.removeItem('refreshToken');
+          // Xóa cookie
+          document.cookie = 'accessToken=; path=/; max-age=0';
         }
         set({ user: null, accessToken: null, refreshToken: null });
       },

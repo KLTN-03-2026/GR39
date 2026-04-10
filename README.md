@@ -43,34 +43,33 @@ cd khoa_luan_tot_nghiep
 
 ### Bước 2 — Tạo file môi trường
 
-Sao chép file `.env.example` thành `.env`:
+File `.env.example` đã được điền sẵn toàn bộ giá trị cần thiết (bao gồm Gemini API Key). Chỉ cần copy:
 
 ```bash
-# Windows
+# Windows (Command Prompt)
 copy .env.example .env
+
+# Windows (PowerShell)
+Copy-Item .env.example .env
 
 # Mac/Linux
 cp .env.example .env
 ```
 
-Mở file `.env` và điền **Gemini API Key** (bắt buộc để tính năng AI hoạt động):
+Tạo thêm file `ai-service/.env`:
 
-```env
-GEMINI_API_KEY=your_gemini_api_key_here
+```bash
+# Windows (Command Prompt)
+copy .env.example ai-service\.env
+
+# Windows (PowerShell)
+Copy-Item .env.example ai-service\.env
+
+# Mac/Linux
+cp .env.example ai-service/.env
 ```
 
-> Lấy key miễn phí tại: https://aistudio.google.com/app/apikey
-
-Tạo thêm file `ai-service/.env` với nội dung:
-
-```env
-PORT=3002
-MONGODB_URI=mongodb://phonemarket:phonemarket123@127.0.0.1:27017/phonemarket_ai?authSource=admin
-REDIS_URL=redis://:phonemarket123@localhost:6379
-GEMINI_API_KEY=your_gemini_api_key_here
-```
-
-Các biến còn lại đã có giá trị mặc định, **không cần thay đổi** khi chạy local.
+> **Không cần chỉnh sửa gì thêm** — tất cả giá trị đã đúng cho môi trường local.
 
 ---
 

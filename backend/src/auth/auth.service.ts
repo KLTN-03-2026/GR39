@@ -40,6 +40,7 @@ export class AuthService {
         passwordHash,
         name: dto.name,
         phone: dto.phone,
+        role: 'SELLER', // Mặc định SELLER để có thể đăng tin ngay
       },
     });
 

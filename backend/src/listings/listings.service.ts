@@ -26,6 +26,8 @@ export class ListingsService {
         model: dto.model,
         storage: dto.storage,
         color: dto.color,
+        origin: dto.origin,
+        warranty: dto.warranty,
         images: {
           create: files.map((file, index) => ({
             url: `/uploads/${file.filename}`,
