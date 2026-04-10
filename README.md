@@ -2,7 +2,7 @@
 
 > **Đề tài:** Xây dựng Website Mua Bán và Trao Đổi Điện Thoại Tích Hợp AI Hỗ Trợ Định Giá Sản Phẩm
 > **Sinh viên thực hiện:** [Ngô Tuấn Huy]
-> **GVHD:** []
+> **GVHD:** [ĐOÀN HOÀNG DUY]
 
 ---
 
