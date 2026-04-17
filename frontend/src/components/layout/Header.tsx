@@ -106,6 +106,16 @@ export function Header() {
                     <span className="material-symbols-outlined text-lg">dashboard</span>
                     Quản lý tin đăng
                   </Link>
+                  {user?.role === 'ADMIN' && (
+                    <Link
+                      href="/admin/dashboard"
+                      onClick={() => setShowDropdown(false)}
+                      className="flex items-center gap-3 px-4 py-3 text-sm text-purple-700 hover:bg-purple-50 transition-colors font-medium"
+                    >
+                      <span className="material-symbols-outlined text-lg">admin_panel_settings</span>
+                      Admin Dashboard
+                    </Link>
+                  )}
                   <hr className="border-slate-100" />
                   <button
                     onClick={handleLogout}

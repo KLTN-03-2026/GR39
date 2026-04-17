@@ -85,7 +85,12 @@ export function LoginForm() {
           </div>
 
           <div>
-            <Label htmlFor="password">Mật khẩu</Label>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="password">Mật khẩu</Label>
+              <Link href="/forgot-password" className="text-xs text-primary hover:underline font-medium">
+                Quên mật khẩu?
+              </Link>
+            </div>
             <Input id="password" type="password" placeholder="••••••••" className="mt-1" {...register('password')} />
             {errors.password && <p className="mt-1 text-xs text-red-600">{errors.password.message}</p>}
           </div>
