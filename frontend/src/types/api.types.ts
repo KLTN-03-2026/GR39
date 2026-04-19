@@ -40,10 +40,14 @@ export interface Listing {
   model: string;
   storage?: string;
   color?: string;
+  warranty?: string;
+  origin?: string;
+  location?: string;
+  iphoneVersion?: string;
   status: ListingStatus;
   aiPriceResult?: AiPriceResult;
   images: ListingImage[];
-  category: Category;
+  category?: Category;
   seller: PublicSeller;
   createdAt: string;
   updatedAt: string;

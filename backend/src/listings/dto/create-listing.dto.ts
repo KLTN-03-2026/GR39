@@ -39,9 +39,10 @@ export class CreateListingDto {
   @IsString()
   model: string;
 
-  @ApiProperty({ example: 'cat_apple_id' })
+  @ApiPropertyOptional({ example: 'cat_apple_id' })
+  @IsOptional()
   @IsString()
-  categoryId: string;
+  categoryId?: string;
 
   @ApiPropertyOptional({ example: '256GB' })
   @IsOptional()
@@ -62,4 +63,14 @@ export class CreateListingDto {
   @IsOptional()
   @IsString()
   warranty?: string;
+
+  @ApiPropertyOptional({ example: 'Quốc tế' })
+  @IsOptional()
+  @IsString()
+  iphoneVersion?: string;
+
+  @ApiPropertyOptional({ example: 'Quận 1, TP. Hồ Chí Minh' })
+  @IsOptional()
+  @IsString()
+  location?: string;
 }

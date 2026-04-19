@@ -17,7 +17,7 @@ export class ListingsService {
     const listing = await this.prisma.listing.create({
       data: {
         sellerId,
-        categoryId: dto.categoryId,
+        ...(dto.categoryId && { categoryId: dto.categoryId }),
         title: dto.title,
         description: dto.description,
         condition: dto.condition,
@@ -28,6 +28,8 @@ export class ListingsService {
         color: dto.color,
         origin: dto.origin,
         warranty: dto.warranty,
+        iphoneVersion: dto.iphoneVersion,
+        location: dto.location,
         images: {
           create: files.map((file, index) => ({
             url: `/uploads/${file.filename}`,

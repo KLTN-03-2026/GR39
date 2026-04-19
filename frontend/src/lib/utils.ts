@@ -22,5 +22,6 @@ export function formatDate(date: string | Date): string {
 
 export function getImageUrl(url: string): string {
   if (url.startsWith('http')) return url;
-  return `${process.env.NEXT_PUBLIC_API_URL}${url}`;
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
+  return `${baseUrl}${url}`;
 }

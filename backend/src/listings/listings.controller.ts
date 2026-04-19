@@ -10,9 +10,6 @@ import {
   UseGuards,
   UseInterceptors,
   UploadedFiles,
-  ParseFilePipe,
-  MaxFileSizeValidator,
-  FileTypeValidator,
 } from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
@@ -71,15 +68,7 @@ export class ListingsController {
   create(
     @CurrentUser() user: JwtPayload,
     @Body() dto: CreateListingDto,
-    @UploadedFiles(
-      new ParseFilePipe({
-        validators: [
-          new MaxFileSizeValidator({ maxSize: 10 * 1024 * 1024 }),
-          new FileTypeValidator({ fileType: /image\/(jpeg|png|webp)/ }),
-        ],
-        fileIsRequired: false,
-      }),
-    )
+    @UploadedFiles()
     files: Express.Multer.File[] = [],
   ) {
     return this.listingsService.create(user.sub, dto, files);

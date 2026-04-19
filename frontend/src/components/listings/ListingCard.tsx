@@ -1,3 +1,4 @@
+'use client';
 import Link from 'next/link';
 import { Listing, CONDITION_LABELS } from '@/types/api.types';
 import { formatPrice, getImageUrl } from '@/lib/utils';

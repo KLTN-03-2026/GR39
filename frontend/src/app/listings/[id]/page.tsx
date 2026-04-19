@@ -1,14 +1,12 @@
 import { notFound } from 'next/navigation';
-import Link from 'next/link';
-import { MessageCircle, ShieldCheck, User, Calendar } from 'lucide-react';
+import { MapPin, Clock, Info } from 'lucide-react';
 import { api } from '@/lib/axios';
-import { Listing, CONDITION_LABELS } from '@/types/api.types';
+import { Listing, CONDITION_LABELS, AiPriceResult } from '@/types/api.types';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { formatPrice, formatDate, getImageUrl } from '@/lib/utils';
+import { formatPrice, formatDate } from '@/lib/utils';
 import { ListingImageGallery } from '@/components/listings/ListingImageGallery';
-import { ContactSellerButton } from '@/components/listings/ContactSellerButton';
-import { BuyNowButton } from '@/components/listings/BuyNowButton';
+import { ListingContactPanel } from '@/components/listings/ListingContactPanel';
+import { SaveButton } from '@/components/listings/SaveButton';
 
 async function getListing(id: string): Promise<Listing | null> {
   try {
@@ -19,110 +17,134 @@ async function getListing(id: string): Promise<Listing | null> {
   }
 }
 
+function formatShortPrice(price: number): string {
+  if (price >= 1_000_000) return `${(price / 1_000_000).toFixed(1).replace(/\.0$/, '')} tr`;
+  if (price >= 1_000)     return `${Math.round(price / 1_000)} nghìn`;
+  return `${price}đ`;
+}
+
+function SpecRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-center justify-between py-1.5 border-b border-gray-50 last:border-0">
+      <span className="text-xs text-gray-400">{label}</span>
+      <span className="text-xs font-semibold text-gray-700">{value}</span>
+    </div>
+  );
+}
+
+function MarketPriceRange({ askingPrice, aiResult }: { askingPrice: number; aiResult: AiPriceResult }) {
+  const low  = aiResult.priceRange?.low  ?? aiResult.P_final * 0.85;
+  const high = aiResult.priceRange?.high ?? aiResult.P_final * 1.15;
+  const pct  = Math.min(Math.max(((askingPrice - low) / (high - low)) * 100, 2), 98);
+
+  return (
+    <div className="rounded-xl border border-gray-100 bg-gray-50 p-4">
+      <div className="flex items-center justify-between mb-3">
+        <span className="text-sm font-semibold text-gray-700">Khoảng giá thị trường</span>
+        <span className="flex items-center gap-1 text-xs text-gray-400">
+          <Info className="h-3 w-3" /> Theo dữ liệu trong 3 tháng gần nhất
+        </span>
+      </div>
+      <div className="relative pt-5">
+        {/* Price pill marker */}
+        <div
+          className="absolute -top-0 -translate-x-1/2 rounded-full bg-blue-600 px-2 py-0.5 text-[10px] font-bold text-white whitespace-nowrap"
+          style={{ left: `${pct}%` }}
+        >
+          {formatShortPrice(askingPrice)}
+        </div>
+        {/* Track */}
+        <div className="h-2 w-full rounded-full bg-blue-200">
+          <div className="h-full rounded-full bg-blue-600" style={{ width: `${pct}%` }} />
+        </div>
+        {/* Range labels */}
+        <div className="mt-1.5 flex justify-between text-[10px] font-medium text-gray-400">
+          <span>{formatShortPrice(low)}</span>
+          <span>{formatShortPrice(high)}</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default async function ListingDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const listing = await getListing(id);
   if (!listing) notFound();
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8">
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
-        {/* Left: Images + Info */}
-        <div className="lg:col-span-2 space-y-6">
+    <div className="mx-auto max-w-5xl px-4 pt-24 pb-12">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[380px_1fr] items-start">
+
+        {/* ── LEFT: Gallery + Specs ── */}
+        <div className="space-y-4">
           <ListingImageGallery images={listing.images} title={listing.title} />
 
-          {/* Details */}
-          <div className="rounded-2xl border border-gray-200 bg-white p-6">
-            <div className="flex items-start justify-between gap-4">
-              <h1 className="text-xl font-bold text-gray-900">{listing.title}</h1>
-              <Badge variant="success">{CONDITION_LABELS[listing.condition]}</Badge>
-            </div>
-
-            <p className="mt-2 text-3xl font-bold text-blue-600">{formatPrice(listing.askingPrice)}</p>
-
-            {listing.aiPriceResult && (
-              <div className="mt-4 rounded-xl bg-blue-50 border border-blue-100 p-4">
-                <p className="text-xs font-semibold text-blue-700 uppercase tracking-wide">Định giá AI</p>
-                <div className="mt-2 flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-gray-600">Giá thị trường: <span className="font-medium">{formatPrice(listing.aiPriceResult.P_market)}</span></p>
-                    <p className="text-sm text-gray-600">Giá đề xuất: <span className="font-bold text-blue-700">{formatPrice(listing.aiPriceResult.P_final)}</span></p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-xs text-gray-500">Độ tin cậy</p>
-                    <p className="text-lg font-bold text-green-600">
-                      {Math.round(listing.aiPriceResult.confidenceScore * 100)}%
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            <hr className="my-4" />
-
-            {/* Specs */}
-            <div className="grid grid-cols-2 gap-3 text-sm">
-              <div><span className="text-gray-500">Thương hiệu:</span> <span className="font-medium">{listing.brand}</span></div>
-              <div><span className="text-gray-500">Model:</span> <span className="font-medium">{listing.model}</span></div>
-              {listing.storage && <div><span className="text-gray-500">Bộ nhớ:</span> <span className="font-medium">{listing.storage}</span></div>}
-              {listing.color && <div><span className="text-gray-500">Màu sắc:</span> <span className="font-medium">{listing.color}</span></div>}
-              <div><span className="text-gray-500">Danh mục:</span> <span className="font-medium">{listing.category.name}</span></div>
-              <div><span className="text-gray-500">Đăng ngày:</span> <span className="font-medium">{formatDate(listing.createdAt)}</span></div>
-            </div>
-
-            <hr className="my-4" />
-
-            <div>
-              <h2 className="font-semibold text-gray-900">Mô tả</h2>
-              <p className="mt-2 whitespace-pre-line text-sm text-gray-700">{listing.description}</p>
-            </div>
+          {/* Specs */}
+          <div className="rounded-2xl border border-gray-100 bg-white p-4">
+            <h3 className="mb-2 text-xs font-bold uppercase tracking-wide text-gray-400">Thông số</h3>
+            <SpecRow label="Thương hiệu" value={listing.brand} />
+            <SpecRow label="Model" value={listing.model} />
+            {listing.storage  && <SpecRow label="Bộ nhớ"    value={listing.storage} />}
+            {listing.color    && <SpecRow label="Màu sắc"   value={listing.color} />}
+            {listing.category && <SpecRow label="Danh mục"  value={listing.category.name} />}
+            <SpecRow label="Tình trạng" value={CONDITION_LABELS[listing.condition]} />
+            <SpecRow label="Đăng ngày"  value={formatDate(listing.createdAt)} />
           </div>
         </div>
 
-        {/* Right: Seller + Actions */}
+        {/* ── RIGHT: Info + Contact ── */}
         <div className="space-y-4">
-          {/* Seller card */}
-          <div className="rounded-2xl border border-gray-200 bg-white p-5">
-            <h2 className="mb-4 font-semibold text-gray-900">Thông tin người bán</h2>
-            <Link href={`/users/${listing.seller.id}`} className="flex items-center gap-3 hover:opacity-80">
-              {listing.seller.avatar ? (
-                <img src={listing.seller.avatar} alt={listing.seller.name} className="h-12 w-12 rounded-full object-cover" />
-              ) : (
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100">
-                  <User className="h-6 w-6 text-blue-600" />
-                </div>
-              )}
-              <div>
-                <p className="font-medium text-gray-900">{listing.seller.name}</p>
-                {listing.seller.createdAt && (
-                  <p className="flex items-center gap-1 text-xs text-gray-400">
-                    <Calendar className="h-3 w-3" />
-                    Tham gia {formatDate(listing.seller.createdAt)}
-                  </p>
-                )}
-              </div>
-            </Link>
 
-            <div className="mt-4 space-y-2">
-              <BuyNowButton listingId={listing.id} sellerId={listing.seller.id} listingStatus={listing.status} />
-              <ContactSellerButton listingId={listing.id} sellerId={listing.seller.id} />
-              <Button variant="outline" className="w-full" asChild>
-                <Link href={`/users/${listing.seller.id}`}>Xem trang người bán</Link>
-              </Button>
+          {/* Title + Save */}
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <p className="mb-1 text-xs text-gray-400">
+                {listing.brand}
+                {listing.category && ` · ${listing.category.name}`}
+              </p>
+              <h1 className="text-xl font-bold leading-snug text-gray-900">{listing.title}</h1>
+              <div className="mt-1.5">
+                <Badge variant="success">{CONDITION_LABELS[listing.condition]}</Badge>
+              </div>
             </div>
+            <SaveButton listingId={listing.id} />
           </div>
 
-          {/* Safety note */}
-          <div className="rounded-xl bg-green-50 border border-green-100 p-4">
-            <div className="flex items-start gap-2">
-              <ShieldCheck className="h-5 w-5 shrink-0 text-green-600 mt-0.5" />
-              <div>
-                <p className="text-sm font-semibold text-green-800">Thanh toán an toàn</p>
-                <p className="mt-1 text-xs text-green-700">
-                  Dùng thanh toán VNPAY Escrow để tiền được bảo vệ cho đến khi bạn nhận máy và xác nhận.
-                </p>
-              </div>
-            </div>
+          {/* Price */}
+          <p className="text-3xl font-black text-red-500">{formatPrice(listing.askingPrice)}</p>
+
+          {/* Location + Time */}
+          <div className="flex flex-wrap gap-4 text-sm text-gray-500">
+            {listing.location && (
+              <span className="flex items-center gap-1.5">
+                <MapPin className="h-4 w-4 shrink-0 text-blue-400" />
+                {listing.location}
+              </span>
+            )}
+            <span className="flex items-center gap-1.5">
+              <Clock className="h-4 w-4 shrink-0 text-gray-300" />
+              Cập nhật {formatDate(listing.updatedAt ?? listing.createdAt)}
+            </span>
+          </div>
+
+          {/* Market price range (AI) */}
+          {listing.aiPriceResult && (
+            <MarketPriceRange
+              askingPrice={listing.askingPrice}
+              aiResult={listing.aiPriceResult}
+            />
+          )}
+
+          {/* Contact panel (client) */}
+          <ListingContactPanel listing={listing} />
+
+          {/* Description */}
+          <div className="rounded-2xl border border-gray-100 bg-white p-5">
+            <h2 className="mb-2 text-xs font-bold uppercase tracking-wide text-gray-400">Mô tả</h2>
+            <p className="whitespace-pre-line text-sm leading-relaxed text-gray-600">
+              {listing.description}
+            </p>
           </div>
         </div>
       </div>

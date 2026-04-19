@@ -93,8 +93,8 @@ model Listing {
   id            String          @id @default(cuid())
   sellerId      String
   seller        User            @relation("SellerListings", fields: [sellerId], references: [id])
-  categoryId    String
-  category      Category        @relation(fields: [categoryId], references: [id])
+  categoryId    String?
+  category      Category?       @relation(fields: [categoryId], references: [id])
 
   title         String
   description   String
@@ -112,6 +112,8 @@ model Listing {
   color         String?
   origin        String?         // Xuất xứ: Việt Nam, Mỹ, Hàn Quốc...
   warranty      String?         // Chính sách bảo hành: Hết bảo hành, 1 tháng, Còn bảo hành...
+  iphoneVersion String?         // Quốc tế / Khoá mạng (chỉ Apple)
+  location      String?         // Địa chỉ người bán
 
   images        ListingImage[]
   transactions  Transaction[]
