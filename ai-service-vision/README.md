@@ -161,6 +161,62 @@ python -m scripts.stats
 
 → Phân bố generation, số ảnh, dung lượng disk.
 
+---
+
+## Stage 2 — Filter + Pre-label Damage
+
+### 1. Filter dataset (loại tin rác, duplicate ảnh, giá outlier)
+
+```powershell
+python -m scripts.filter_data
+```
+
+Default: min 2 ảnh/listing, max 8 listing/location (chống shop chuyên), pHash dedup (Hamming distance ≤ 5), drop listing có ≥60% ảnh trùng với listing khác.
+
+Output:
+- `data/filtered/clean.jsonl` — listing đạt chuẩn
+- `data/filtered/dropped.jsonl` — listing bị loại + lý do
+
+In thống kê tỉ lệ drop theo lý do (price_outlier, image_repost, shop_overflow…).
+
+### 2. Pre-label damage (OPTIONAL — bỏ qua nếu dùng Roboflow auto-label)
+
+> **Khuyến nghị:** Skip bước này, dùng **Roboflow Auto-Label** trong Stage 3 (free trong Premium Trial 14 ngày, chất lượng tương đương, không cần billing).
+>
+> Bước Gemini dưới đây chỉ giữ làm tham khảo / fallback nếu Roboflow không khả dụng.
+
+<details>
+<summary>Hướng dẫn Gemini pre-label (cần billing ~$1.50)</summary>
+
+Lấy API key tại https://aistudio.google.com/app/apikey → thêm vào `.env`:
+
+```env
+GEMINI_API_KEY=AIza...
+```
+
+**Lưu ý:** Free tier Gemini hiện tại rất hạn chế (limit 20 RPD trên gemini-2.5-flash-lite). Phải enable billing (Google Cloud) để chạy được — chi phí ~$1.50 cho 15k ảnh.
+
+```powershell
+python -m scripts.auto_prelabel_gemini --limit 100 --concurrency 2 --resume
+python -m scripts.auto_prelabel_gemini --limit 0 --concurrency 8 --resume
+```
+
+`--resume` tự skip ảnh đã label rồi. Output: `data/filtered/prelabel_damage.jsonl`.
+
+</details>
+
+### 3. Export sang Roboflow COCO format
+
+```powershell
+python -m scripts.export_to_roboflow --copy-images
+```
+
+Output: `data/labeled/roboflow_upload/`
+- `images/` — toàn bộ ảnh đã filter
+- `annotations.coco.json` — pre-label damage box (gợi ý cho khâu label tay)
+
+Zip thư mục này → upload lên Roboflow → Stage 3 (manual labeling).
+
 ### Cảnh báo về scraping
 
 - **Chợ Tốt API có thể đổi schema bất kỳ lúc nào.** Nếu script crash sau update, kiểm tra response thật bằng `--debug` rồi sửa `parse_ad()`.
